@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Pic</title>
+</head>
+
+<body>
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="profilepic" accept=".png, .jpg, .jpeg">
+        <button type="button" id="upload"> Upload </button>
+    </form>
+
+    <style>
+        #img-preview, .dp-image {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: whitesmoke;
+            margin: 20px;
+            overflow: hidden;
+        }
+
+        #img-preview img, .dp-image img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    </style>
+
+    <div id="img-preview"> </div>
+
+    <p id="message"> </p>
+
+    <div class="dp-image">
+        <% if(image) { %>
+            <img src="<%- image %>" alt="profile image">
+            <% } else { %>
+                
+                <% } %>
+    </div>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script>
+        const img_preview = document.getElementById('img-preview');
+        const profilepic = document.getElementsByName('profilepic')[0];
+        
+        profilepic.addEventListener('change', (event) => {
+            img_preview.innerHTML = null;
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = async (e) => {
+                const image = new Image();
+                image.src = e.target.result;
+                await img_preview.appendChild(image);
+            }
+
+            reader.readAsDataURL(file);
+        });
+    </script>
+
+    <script>
+        const msg_elem = document.getElementById('message');
+        document.getElementById('upload').addEventListener('click', async function (event) {
+            event.preventDefault();
+            const profilepic = document.getElementsByName('profilepic')[0].files[0];
+            const formData = new FormData();
+            formData.append('profilepic', profilepic);
+
+            try {
+                const response = await axios.post('/upload_profile', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+
+                if (response.status === 200) {
+                    msg_elem.innerText = response.data.message;
+                }
+            } catch (error) {
+                if (error.response) {
+                    msg_elem.innerText = `${error.response.data.message}`;
+                } else if (error.request) {
+                    msg_elem.innerText = 'No response received from the server.';
+                } else {
+                    msg_elem.innerText = 'An unexpected error occurred while making the request.';
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
